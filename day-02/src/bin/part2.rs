@@ -22,15 +22,19 @@ impl Range {
 
 fn parse_ranges(input: &str) -> (Vec<Range>, u64) {
     let mut max_id = 0;
-    let ranges = input.trim().split(',').map(|range| {
-        let (min, max) = range.split_once('-').unwrap();
-        let range = Range {
-            min: min.parse().unwrap(),
-            max: max.parse().unwrap(),
-        };
-        max_id = max_id.max(range.max);
-        range
-    }).collect();
+    let ranges = input
+        .trim()
+        .split(',')
+        .map(|range| {
+            let (min, max) = range.split_once('-').unwrap();
+            let range = Range {
+                min: min.parse().unwrap(),
+                max: max.parse().unwrap(),
+            };
+            max_id = max_id.max(range.max);
+            range
+        })
+        .collect();
     (ranges, max_id)
 }
 

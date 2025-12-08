@@ -3,6 +3,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     panic,
     rc::Rc,
+    time::Instant,
 };
 
 use aocd::*;
@@ -10,8 +11,14 @@ use aocd::*;
 #[aocd(2025, 8)]
 fn main() {
     let input = input!();
+
+    let now = Instant::now();
     let sum = solve(&input);
-    dbg!(sum);
+    println!("{sum} in {:?} with Map<Set>", now.elapsed());
+
+    let now = Instant::now();
+    let sum = solve_uf(&input);
+    println!("{sum} in {:?} with UnionFind", now.elapsed());
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
@@ -90,6 +97,54 @@ fn solve(input: &str) -> i64 {
         }
     }
     panic!();
+}
+
+struct UnionFind {
+    parents: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new(len: usize) -> Self {
+        Self {
+            parents: (0..len).collect(),
+        }
+    }
+    fn find(&self, i: usize) -> usize {
+        if self.parents[i] == i {
+            return i;
+        }
+        return self.find(self.parents[i]);
+    }
+
+    fn union(&mut self, i: usize, j: usize) {
+        let p = self.find(j);
+        self.parents[p] = self.find(i);
+    }
+}
+
+fn solve_uf(input: &str) -> i64 {
+    let boxes = parse(input);
+    let mut pairs = Vec::new();
+    for (i, a) in boxes.iter().enumerate() {
+        for (j, b) in boxes.iter().enumerate().skip(i + 1) {
+            pairs.push((a.distance(&b), i, j));
+        }
+    }
+    pairs.sort();
+
+    let mut uf = UnionFind::new(boxes.len());
+    let mut connections = 0;
+    for &(_, a, b) in pairs.iter() {
+        if uf.find(a) == uf.find(b) {
+            continue;
+        }
+        uf.union(a, b);
+        connections += 1;
+        if connections == boxes.len() - 1 {
+            return boxes[a].x * boxes[b].x;
+        }
+    }
+    panic!()
 }
 
 #[cfg(test)]

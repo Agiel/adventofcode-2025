@@ -2,6 +2,7 @@ use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     rc::Rc,
+    time::Instant,
 };
 
 use aocd::*;
@@ -9,8 +10,14 @@ use aocd::*;
 #[aocd(2025, 8)]
 fn main() {
     let input = input!();
+
+    let now = Instant::now();
     let sum = solve(&input, 1000);
-    dbg!(sum);
+    println!("{sum} in {:?} with Map<Set>", now.elapsed());
+
+    let now = Instant::now();
+    let sum = solve_uf(&input, 1000);
+    println!("{sum} in {:?} with UnionFind", now.elapsed());
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
@@ -89,6 +96,55 @@ fn solve(input: &str, connections: usize) -> usize {
     circuits.sort_by(|a, b| b.borrow().len().cmp(&a.borrow().len()));
 
     circuits.iter().take(3).map(|c| c.borrow().len()).product()
+}
+
+struct UnionFind {
+    parents: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new(len: usize) -> Self {
+        Self {
+            parents: (0..len).collect(),
+        }
+    }
+    fn find(&self, i: usize) -> usize {
+        if self.parents[i] == i {
+            return i;
+        }
+        return self.find(self.parents[i]);
+    }
+
+    fn union(&mut self, i: usize, j: usize) {
+        let p = self.find(j);
+        self.parents[p] = self.find(i);
+    }
+}
+
+fn solve_uf(input: &str, connections: usize) -> i64 {
+    let boxes = parse(input);
+    let mut pairs = Vec::new();
+    for (i, a) in boxes.iter().enumerate() {
+        for (j, b) in boxes.iter().enumerate().skip(i + 1) {
+            pairs.push((a.distance(&b), i, j));
+        }
+    }
+    pairs.sort();
+
+    let mut uf = UnionFind::new(boxes.len());
+    for &(_, a, b) in pairs.iter().take(connections) {
+        if uf.find(a) == uf.find(b) {
+            continue;
+        }
+        uf.union(a, b);
+    }
+
+    let mut circuits = vec![0; boxes.len()];
+    for i in 0..boxes.len() {
+        circuits[uf.find(i)] += 1;
+    }
+    circuits.sort();
+    circuits.iter().rev().take(3).product()
 }
 
 #[cfg(test)]

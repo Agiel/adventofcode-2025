@@ -20,12 +20,12 @@ fn parse(input: &str) -> BTreeMap<String, BTreeSet<String>> {
         .collect()
 }
 
-fn count_ways(
-    pos: &String,
-    goal: &String,
+fn count_ways<'a>(
+    pos: &'a str,
+    goal: &str,
     hits: &(bool, bool),
-    graph: &BTreeMap<String, BTreeSet<String>>,
-    cache: &mut BTreeMap<(String, (bool, bool)), u64>,
+    graph: &'a BTreeMap<String, BTreeSet<String>>,
+    cache: &mut BTreeMap<(&'a str, (bool, bool)), u64>,
 ) -> u64 {
     if pos == goal {
         if hits.0 && hits.1 {
@@ -35,7 +35,7 @@ fn count_ways(
         }
     }
 
-    if let Some(&count) = cache.get(&(pos.clone(), hits.clone())) {
+    if let Some(&count) = cache.get(&(pos, *hits)) {
         return count;
     }
 
@@ -50,16 +50,15 @@ fn count_ways(
         .iter()
         .map(|connection| count_ways(connection, goal, &hits, graph, cache))
         .sum();
-    cache.insert((pos.clone(), hits), count);
+    cache.insert((pos, hits), count);
     count
 }
 
 fn solve(input: &str) -> u64 {
     let devices = parse(input);
-    let start = "svr".to_string();
     let mut cache = BTreeMap::new();
     let hits = (false, false);
-    count_ways(&start, &"out".to_string(), &hits, &devices, &mut cache)
+    count_ways("svr", "out", &hits, &devices, &mut cache)
 }
 
 #[cfg(test)]

@@ -20,7 +20,7 @@ fn parse(input: &str) -> BTreeMap<String, BTreeSet<String>> {
         .collect()
 }
 
-fn count_ways(pos: &String, goal: &String, graph: &BTreeMap<String, BTreeSet<String>>) -> u64 {
+fn count_ways(pos: &str, goal: &str, graph: &BTreeMap<String, BTreeSet<String>>) -> u64 {
     if pos == goal {
         return 1;
     }
@@ -33,7 +33,7 @@ fn count_ways(pos: &String, goal: &String, graph: &BTreeMap<String, BTreeSet<Str
 
 fn solve(input: &str) -> u64 {
     let devices = parse(input);
-    count_ways(&"you".to_string(), &"out".to_string(), &devices)
+    count_ways("you", "out", &devices)
 }
 
 #[cfg(test)]
